@@ -55,19 +55,26 @@ def build_models(y_train, use_smote: bool = False) -> dict:
     # maiores impedem que a floresta memorize o treino (max_depth=None).
     rf = RandomForestClassifier(
         n_estimators=300,
-        max_depth=8,
-        min_samples_leaf=20,
+        max_depth=6,
+        min_samples_leaf=30,
         max_features="sqrt",
         class_weight=class_weight,
         random_state=config.RANDOM_STATE,
         n_jobs=-1,
     )
+    # Regularização do XGBoost: menos árvores + learning_rate menor, folhas com
+    # peso mínimo (min_child_weight), ganho mínimo por split (gamma) e penalização
+    # L1/L2 (reg_alpha/reg_lambda) para reduzir o gap treino-teste.
     xgb = XGBClassifier(
-        n_estimators=300,
-        max_depth=4,
-        learning_rate=0.1,
-        subsample=0.9,
-        colsample_bytree=0.9,
+        n_estimators=150,
+        max_depth=3,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        min_child_weight=5,
+        gamma=1.0,
+        reg_alpha=0.5,
+        reg_lambda=2.0,
         scale_pos_weight=xgb_spw,
         eval_metric="logloss",
         random_state=config.RANDOM_STATE,
