@@ -27,7 +27,7 @@ from xgboost import XGBClassifier
 
 from . import config
 from .data import load_data
-from .evaluate import compare_models
+from .evaluate import compare_models, overfitting_report
 from .features import make_splits
 
 
@@ -51,8 +51,13 @@ def build_models(y_train, use_smote: bool = False) -> dict:
     logreg = LogisticRegression(
         max_iter=1000, class_weight=class_weight, random_state=config.RANDOM_STATE
     )
+    # Regularização para conter overfitting: árvores rasas + folhas mínimas
+    # maiores impedem que a floresta memorize o treino (max_depth=None).
     rf = RandomForestClassifier(
         n_estimators=300,
+        max_depth=8,
+        min_samples_leaf=20,
+        max_features="sqrt",
         class_weight=class_weight,
         random_state=config.RANDOM_STATE,
         n_jobs=-1,
@@ -107,6 +112,10 @@ def train_all(use_smote: bool = False):
     label = "com SMOTE" if use_smote else "baseline (pesos de classe)"
     print(f"\n=== Comparação de modelos — {label} (teste) ===")
     print(results.to_string(index=False))
+
+    overfit = overfitting_report(trained, X_train, y_train, X_test, y_test)
+    print("\n=== Diagnóstico de overfitting (ROC-AUC treino vs teste) ===")
+    print(overfit.to_string(index=False))
     return trained, results
 
 

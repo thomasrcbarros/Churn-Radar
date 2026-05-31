@@ -40,3 +40,24 @@ def compare_models(trained: dict, X_test, y_test) -> pd.DataFrame:
         rows.append(metrics)
     df = pd.DataFrame(rows).set_index("Model").round(4)
     return df.sort_values("PR_AUC", ascending=False).reset_index()
+
+
+def overfitting_report(trained: dict, X_train, y_train, X_test, y_test) -> pd.DataFrame:
+    """Compara ROC-AUC de treino vs teste para diagnosticar overfitting.
+
+    Um ``gap`` alto (treino >> teste) indica que o modelo memorizou o treino.
+    """
+    rows = []
+    for name, model in trained.items():
+        train_auc = roc_auc_score(y_train, model.predict_proba(X_train)[:, 1])
+        test_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+        rows.append(
+            {
+                "Model": name,
+                "Train_AUC": train_auc,
+                "Test_AUC": test_auc,
+                "Gap": train_auc - test_auc,
+            }
+        )
+    df = pd.DataFrame(rows).round(4)
+    return df.sort_values("Gap", ascending=False).reset_index(drop=True)
