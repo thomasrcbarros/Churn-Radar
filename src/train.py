@@ -5,6 +5,7 @@ Modelos (selecionados via skill /model-selector):
   2. Random Forest        — robusto, captura não-linearidades.
   3. XGBoost              — teto de performance em dados tabulares.
 
+Hiperparâmetros vêm de `config.TUNED_PARAMS` (escolhidos por CV em src/tune.py).
 Desbalanceamento (~14,5% churn) tratado de duas formas comparáveis:
   - baseline: pesos de classe (`class_weight` / `scale_pos_weight`);
   - SMOTE: oversampling sintético da classe minoritária, aplicado SÓ no treino
@@ -48,37 +49,25 @@ def build_models(y_train, use_smote: bool = False) -> dict:
     class_weight = None if use_smote else "balanced"
     xgb_spw = 1.0 if use_smote else scale_pos_weight
 
+    # Hiperparâmetros tunados via CV (ver config.TUNED_PARAMS e src/tune.py).
     logreg = LogisticRegression(
-        max_iter=1000, class_weight=class_weight, random_state=config.RANDOM_STATE
+        max_iter=2000,
+        class_weight=class_weight,
+        random_state=config.RANDOM_STATE,
+        **config.TUNED_PARAMS["LogisticRegression"],
     )
-    # Regularização para conter overfitting: árvores rasas + folhas mínimas
-    # maiores impedem que a floresta memorize o treino (max_depth=None).
     rf = RandomForestClassifier(
-        n_estimators=300,
-        max_depth=6,
-        min_samples_leaf=30,
-        max_features="sqrt",
         class_weight=class_weight,
         random_state=config.RANDOM_STATE,
         n_jobs=-1,
+        **config.TUNED_PARAMS["RandomForest"],
     )
-    # Regularização do XGBoost: menos árvores + learning_rate menor, folhas com
-    # peso mínimo (min_child_weight), ganho mínimo por split (gamma) e penalização
-    # L1/L2 (reg_alpha/reg_lambda) para reduzir o gap treino-teste.
     xgb = XGBClassifier(
-        n_estimators=150,
-        max_depth=3,
-        learning_rate=0.05,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        min_child_weight=5,
-        gamma=1.0,
-        reg_alpha=0.5,
-        reg_lambda=2.0,
         scale_pos_weight=xgb_spw,
         eval_metric="logloss",
         random_state=config.RANDOM_STATE,
         n_jobs=-1,
+        **config.TUNED_PARAMS["XGBoost"],
     )
 
     if use_smote:
