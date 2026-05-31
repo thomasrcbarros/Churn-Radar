@@ -55,9 +55,72 @@ def roi_report(y_true, y_proba) -> dict:
     grid = optimize_threshold(y_true, y_proba)
     best = grid.iloc[0]
     base = baseline_profit(y_true)
+    n_targeted = int(np.sum(np.asarray(y_proba) >= best["threshold"]))
     return {
         "best_threshold": float(best["threshold"]),
         "model_profit": float(best["profit"]),
         "baseline_profit": float(base),
         "uplift": float(best["profit"] - base),
+        "n_targeted": n_targeted,
     }
+
+
+def save_profit_curve(y_true, y_proba, best_threshold, save_path) -> "object":
+    """Salva o gráfico de lucro esperado vs. threshold, marcando o ótimo."""
+    import matplotlib
+
+    matplotlib.use("Agg")  # backend sem display, para rodar via script/CI
+    import matplotlib.pyplot as plt
+
+    grid = optimize_threshold(y_true, y_proba).sort_values("threshold")
+    plt.figure(figsize=(8, 5))
+    plt.plot(grid["threshold"], grid["profit"])
+    plt.axvline(best_threshold, color="r", ls="--", label="threshold ótimo")
+    plt.axhline(0, color="grey", lw=0.8)
+    plt.xlabel("threshold")
+    plt.ylabel("lucro esperado (R$)")
+    plt.title("Lucro da campanha de retenção vs. threshold")
+    plt.legend()
+    plt.savefig(save_path, bbox_inches="tight", dpi=120)
+    plt.close()
+    return save_path
+
+
+if __name__ == "__main__":
+    # Calcula o ROI dos modelos treinados/salvos por src.train.
+    import joblib
+
+    from .data import load_data
+    from .features import make_splits
+
+    df = load_data()
+    _, X_test, _, y_test = make_splits(df)
+    y_true = y_test.values
+
+    print("Parâmetros de negócio: "
+          f"CLV={config.CLV}, custo={config.RETENTION_COST}, "
+          f"sucesso={config.RETENTION_SUCCESS:.0%}")
+    rows = []
+    for name in ("LogisticRegression", "RandomForest", "XGBoost"):
+        path = config.MODELS_DIR / f"{name}.joblib"
+        if not path.exists():
+            continue
+        model = joblib.load(path)
+        proba = model.predict_proba(X_test)[:, 1]
+        rep = roi_report(y_true, proba)
+        rep["Model"] = name
+        rows.append(rep)
+        save_profit_curve(
+            y_true, proba, rep["best_threshold"],
+            config.MODELS_DIR / f"profit_{name}.png",
+        )
+
+    if rows:
+        cols = ["Model", "best_threshold", "n_targeted",
+                "model_profit", "baseline_profit", "uplift"]
+        table = pd.DataFrame(rows)[cols].sort_values("model_profit", ascending=False)
+        print("\n=== ROI da estratégia de retenção (teste) ===")
+        print(table.to_string(index=False))
+        print("\nCurvas de lucro salvas em models/profit_<modelo>.png")
+    else:
+        print("Nenhum modelo salvo encontrado. Rode `python -m src.train` antes.")
