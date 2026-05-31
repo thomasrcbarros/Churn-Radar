@@ -1,0 +1,28 @@
+# Segredos / credenciais
+.env
+*.key
+
+# Dados e artefatos de modelo
+data/
+models/
+*.pkl
+*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Kaggle cache
+.kaggle/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
