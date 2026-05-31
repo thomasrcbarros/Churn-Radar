@@ -28,7 +28,7 @@ src/
   data.py       # download via kagglehub + carga do CSV
   features.py   # split treino/teste estratificado
   train.py      # treina e salva os 3 modelos
-  evaluate.py   # ROC-AUC, PR-AUC, precision/recall/F1, matriz de confusão
+  evaluate.py   # ROC-AUC, PR-AUC, precision/recall/F1 e gap treino-teste (overfit)
   tune.py       # tuning de hiperparâmetros por CV (RandomizedSearchCV)
   interpret.py  # SHAP (RF/XGB) e coeficientes (LogReg)
   business.py   # threshold ótimo e ROI de retenção
@@ -59,3 +59,34 @@ jupyter notebook notebooks/churn_analysis.ipynb   # EDA, SHAP e ROI
 
 > **Nota:** o acesso ao Kaggle costuma estar bloqueado em ambientes de nuvem. O download
 > dos dados e o treino completo devem ser executados **localmente** com um `.env` válido.
+
+## Resultados
+
+Hiperparâmetros otimizados por validação cruzada (`RandomizedSearchCV`, PR-AUC).
+Desempenho no conjunto de teste:
+
+| Modelo | ROC-AUC | PR-AUC | Precision | Recall | F1 | Gap treino-teste |
+|---|---|---|---|---|---|---|
+| **XGBoost** | 0.857 | **0.730** | 0.540 | **0.773** | 0.636 | 0.116 |
+| **Random Forest** | 0.856 | 0.705 | 0.497 | 0.753 | 0.598 | 0.095 |
+| Logistic Regression | 0.813 | 0.419 | 0.313 | 0.804 | 0.451 | 0.011 |
+
+- **XGBoost e Random Forest** lideram em PR-AUC (métrica-chave em dados desbalanceados),
+  com recall ~0,76 — pegam a maioria dos churners.
+- **Logistic Regression** generaliza muito bem (gap ~0), mas com PR-AUC bem menor:
+  ótima como baseline interpretável.
+
+### Métricas de negócio — ROI da campanha de retenção
+
+Otimizando o threshold para maximizar o lucro líquido esperado
+(`CLV=1.000`, custo da ação `=100`, sucesso `=30%` — parâmetros em `src/config.py`):
+
+| Modelo | Threshold ótimo | Lucro no ótimo | Curva |
+|---|---|---|---|
+| **Random Forest** | ~0,71 | **~R$ 10.500** | platô largo (0,5–0,9) — robusto à escolha do threshold |
+| XGBoost | ~0,62 | ~R$ 10.000 | pico bom, um pouco mais estreito |
+| Logistic Regression | ~0,73 | ~R$ 2.000 | bem inferior |
+
+**Random Forest e XGBoost rendem ~5× mais lucro que a Logistic Regression.** O platô largo
+do Random Forest o torna a escolha mais segura para produção: o lucro se mantém mesmo com
+variações no threshold operacional. Curvas completas em `models/profit_*.png`.
