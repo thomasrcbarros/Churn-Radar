@@ -5,7 +5,6 @@ from __future__ import annotations
 import pandas as pd
 from sklearn.metrics import (
     average_precision_score,
-    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
@@ -24,11 +23,6 @@ def evaluate_model(model, X_test, y_test) -> dict:
         "Recall": recall_score(y_test, y_pred, zero_division=0),
         "F1": f1_score(y_test, y_pred, zero_division=0),
     }
-
-
-def confusion(model, X_test, y_test):
-    """Retorna a matriz de confusão (linhas = real, colunas = previsto)."""
-    return confusion_matrix(y_test, model.predict(X_test))
 
 
 def compare_models(trained: dict, X_test, y_test) -> pd.DataFrame:
