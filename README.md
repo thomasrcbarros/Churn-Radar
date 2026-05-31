@@ -79,14 +79,16 @@ Desempenho no conjunto de teste:
 ### Métricas de negócio — ROI da campanha de retenção
 
 Otimizando o threshold para maximizar o lucro líquido esperado
-(`CLV=1.000`, custo da ação `=100`, sucesso `=30%` — parâmetros em `src/config.py`):
+(`CLV=1.000`, custo da ação `=100`, sucesso `=30%` — parâmetros em `src/config.py`).
+Agir sobre **todos** os clientes (baseline, sem modelo) daria **prejuízo de R$ 37.600**;
+o modelo transforma esse prejuízo em lucro:
 
-| Modelo | Threshold ótimo | Lucro no ótimo | Curva |
-|---|---|---|---|
-| **Random Forest** | ~0,71 | **~R$ 10.500** | platô largo (0,5–0,9) — robusto à escolha do threshold |
-| XGBoost | ~0,62 | ~R$ 10.000 | pico bom, um pouco mais estreito |
-| Logistic Regression | ~0,73 | ~R$ 2.000 | bem inferior |
+| Modelo | Threshold ótimo | Clientes-alvo | Lucro no ótimo | Uplift vs. baseline |
+|---|---|---|---|---|
+| **XGBoost** | 0,71 | 99 | **R$ 10.500** | **+R$ 48.100** |
+| Random Forest | 0,62 | 100 | R$ 10.100 | +R$ 47.700 |
+| Logistic Regression | 0,73 | 45 | R$ 2.400 | +R$ 40.000 |
 
-**Random Forest e XGBoost rendem ~5× mais lucro que a Logistic Regression.** O platô largo
-do Random Forest o torna a escolha mais segura para produção: o lucro se mantém mesmo com
-variações no threshold operacional. Curvas completas em `models/profit_*.png`.
+**XGBoost e Random Forest rendem ~4× mais lucro que a Logistic Regression** e têm curvas
+com platô largo (≈0,5–0,9), ou seja, o lucro se mantém mesmo com variações no threshold
+operacional — robustez importante para produção. Curvas completas em `models/profit_*.png`.
