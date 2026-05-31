@@ -29,6 +29,7 @@ src/
   features.py   # split treino/teste estratificado
   train.py      # treina e salva os 3 modelos
   evaluate.py   # ROC-AUC, PR-AUC, precision/recall/F1, matriz de confusão
+  tune.py       # tuning de hiperparâmetros por CV (RandomizedSearchCV)
   interpret.py  # SHAP (RF/XGB) e coeficientes (LogReg)
   business.py   # threshold ótimo e ROI de retenção
 notebooks/
@@ -50,6 +51,7 @@ O arquivo `.env` é ignorado pelo git (ver `.gitignore`) e **nunca** deve ser co
 python -m src.train          # treina os 3 modelos (baseline) e imprime a comparação
 python -m src.train smote    # treina com oversampling SMOTE (salva *_smote.joblib)
 python -m src.train compare  # baseline vs SMOTE lado a lado (foco no recall)
+python -m src.tune           # tuning por CV (RandomizedSearchCV) -> *_tuned.joblib
 python -m src.interpret  # SHAP/coeficientes dos modelos salvos (gera models/shap_*.png)
 python -m src.business   # ROI de retenção por modelo (gera models/profit_*.png)
 jupyter notebook notebooks/churn_analysis.ipynb   # EDA, SHAP e ROI
