@@ -99,3 +99,11 @@ o modelo transforma esse prejuízo em lucro:
 **XGBoost e Random Forest rendem ~4× mais lucro que a Logistic Regression** e têm curvas
 com platô largo (≈0,5–0,9), ou seja, o lucro se mantém mesmo com variações no threshold
 operacional — robustez importante para produção. Curvas completas em `models/profit_*.png`.
+
+> ⚠️ **Os valores de lucro são ilustrativos.** Eles derivam de um modelo econômico
+> simplificado com premissas configuráveis em `src/config.py` (`CLV=1.000`,
+> `RETENTION_COST=100`, `RETENTION_SUCCESS=30%`) — chutadas como exemplo, não dados reais
+> de negócio. O lucro de um cliente corretamente abordado é `CLV × RETENTION_SUCCESS` e
+> cada abordagem custa `RETENTION_COST`. Ajuste esses parâmetros à realidade da operação
+> (CLV, custo da ação, taxa de sucesso) para obter números fiéis; o threshold ótimo e o
+> uplift mudam conforme eles.
