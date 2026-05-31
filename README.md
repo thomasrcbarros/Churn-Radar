@@ -47,7 +47,9 @@ O arquivo `.env` é ignorado pelo git (ver `.gitignore`) e **nunca** deve ser co
 ## Como rodar
 
 ```bash
-python -m src.train      # baixa os dados, treina os 3 modelos e imprime a comparação
+python -m src.train          # treina os 3 modelos (baseline) e imprime a comparação
+python -m src.train smote    # treina com oversampling SMOTE (salva *_smote.joblib)
+python -m src.train compare  # baseline vs SMOTE lado a lado (foco no recall)
 python -m src.interpret  # SHAP/coeficientes dos modelos salvos (gera models/shap_*.png)
 python -m src.business   # ROI de retenção por modelo (gera models/profit_*.png)
 jupyter notebook notebooks/churn_analysis.ipynb   # EDA, SHAP e ROI
