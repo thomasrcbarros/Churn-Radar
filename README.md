@@ -78,7 +78,14 @@ Desempenho no conjunto de teste:
 
 ### Métricas de negócio — ROI da campanha de retenção
 
-Otimizando o threshold para maximizar o lucro líquido esperado
+O modelo dá a cada cliente uma **probabilidade de churn** (de 0 a 1). O *threshold* é o
+**ponto de corte** dessa probabilidade a partir do qual decidimos agir: clientes com
+probabilidade **acima** do threshold entram na campanha de retenção; os demais, não.
+Threshold baixo = aborda quase todo mundo (gasta muito à toa); threshold alto = aborda só
+os casos mais prováveis (pode deixar churners passarem). O **threshold ótimo** é o corte que
+gera o maior lucro.
+
+Otimizando esse corte para maximizar o lucro líquido esperado
 (`CLV=1.000`, custo da ação `=100`, sucesso `=30%` — parâmetros em `src/config.py`).
 Agir sobre **todos** os clientes (baseline, sem modelo) daria **prejuízo de R$ 37.600**;
 o modelo transforma esse prejuízo em lucro:
